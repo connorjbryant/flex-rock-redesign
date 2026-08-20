@@ -21,6 +21,8 @@ const DISCONNECT = `${BASE}/wp-content/uploads/2025/05/Sway-Bar-quick-disconnect
 const ABOUT = `${BASE}/wp-content/uploads/2025/04/DJI_20250108144936_0108_D-1024x576.jpg`
 const HERO_ROD = `${BASE}/wp-content/uploads/2026/07/RRR-Hero-Black-scaled.png`
 const CAB_HERO = `${BASE}/wp-content/uploads/2026/07/CAB-hero-topography-scaled.png`
+const WARRANTY = `${BASE}/wp-content/uploads/2025/05/Black-Modern-Handwritten-Motivation-Quote-Social-Media.png`
+const FOOTER_BG = `${BASE}/wp-content/uploads/2022/12/DJI_20250318152614_0061_D-scaled.jpg`
 
 const reviews = [
   { author: 'Jordan E.', text: 'Ordered some for my 18 xp1000, then I upgraded to a 2022 pro xp4. Took the bushings off one. Awesome quality and easy to grease! Would buy again.' },
@@ -143,8 +145,25 @@ function HeroSlider() {
 
 function TestimonialsSlider() {
   const [index, setIndex] = useState(0)
-  const perPage = 3
+  const [perPage, setPerPage] = useState(3)
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth
+      if (w <= 980) setPerPage(1)
+      else if (w <= 1200) setPerPage(2)
+      else setPerPage(3)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
   const maxIndex = Math.max(0, reviews.length - perPage)
+
+  useEffect(() => {
+    setIndex((i) => Math.min(i, maxIndex))
+  }, [maxIndex])
 
   useEffect(() => {
     const t = setInterval(() => setIndex((i) => (i >= maxIndex ? 0 : i + 1)), 5000)
@@ -160,14 +179,19 @@ function TestimonialsSlider() {
     })
   }
 
+  const gap = 18
+  const cardBasis = `calc(${100 / perPage}% - ${(gap * (perPage - 1)) / perPage}px)`
+
   return (
     <div className="testimonials-wrap">
       <div
         className="testimonials-track"
-        style={{ transform: `translateX(calc(-${index} * (33.333% + 6px)))` }}
+        style={{
+          transform: `translateX(calc(-${index} * (${100 / perPage}% + ${gap / perPage}px)))`,
+        }}
       >
         {reviews.map((r, i) => (
-          <article key={i} className="testimonial-card">
+          <article key={i} className="testimonial-card" style={{ flex: `0 0 ${cardBasis}` }}>
             <p>“{r.text}”</p>
             <strong>— {r.author}</strong>
           </article>
@@ -182,10 +206,30 @@ function TestimonialsSlider() {
 }
 
 function App() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    document.body.classList.toggle('nav-open', menuOpen)
+    return () => document.body.classList.remove('nav-open')
+  }, [menuOpen])
+
+  const navLinks = [
+    { href: `${BASE}/`, label: 'Home', active: true },
+    { href: `${BASE}/parts-search/`, label: 'Parts Search' },
+    { href: `${BASE}/why-choose-us/`, label: 'Why Us' },
+    { href: `${BASE}/shop/`, label: 'Shop' },
+    { href: `${BASE}/blogs/`, label: 'Blogs' },
+    { href: `${BASE}/utv-gallery/`, label: 'Search Gallery' },
+    { href: `${BASE}/reviews/`, label: 'Reviews' },
+    { href: `${BASE}/my-account/`, label: 'My Account' },
+    { href: `${BASE}/contact-us/`, label: 'Contact Us' },
+  ]
+
   return (
     <div className="site">
       <header className="masthead">
-        <div className="masthead-main page-width">
+        {/* White logo panel + red angled swoosh into dark tools (Fuelab-style) */}
+        <div className="masthead-top">
           <div className="logo-panel">
             <a href={`${BASE}/`}>
               <img src={LOGO} alt="Flex Rock UTV Performance" />
@@ -199,7 +243,7 @@ function App() {
             </div>
             <div className="search-row">
               <div className="product-search">
-                <input placeholder="Search for products..." />
+                <input placeholder="Search for products..." aria-label="Search products" />
                 <button type="button" aria-label="Search">
                   <SearchIcon />
                 </button>
@@ -213,22 +257,44 @@ function App() {
                 <i>0</i>
                 <span>Cart</span>
               </a>
+              <button
+                type="button"
+                className={`menu-toggle${menuOpen ? ' is-open' : ''}`}
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={menuOpen}
+                aria-controls="primary-navigation"
+                onClick={() => setMenuOpen((o) => !o)}
+              >
+                <span />
+                <span />
+                <span />
+              </button>
             </div>
           </div>
         </div>
-        <nav className="main-nav">
-          <div className="page-width nav-inner">
-            <a href={`${BASE}/`} className="active">Home</a>
-            <a href={`${BASE}/parts-search/`}>Parts Search</a>
-            <a href={`${BASE}/why-choose-us/`}>Why Us</a>
-            <a href={`${BASE}/shop/`}>Shop</a>
-            <a href={`${BASE}/blogs/`}>Blogs</a>
-            <a href={`${BASE}/utv-gallery/`}>Search Gallery</a>
-            <a href={`${BASE}/reviews/`}>Reviews</a>
-            <a href={`${BASE}/my-account/`}>My Account</a>
-            <a href={`${BASE}/contact-us/`}>Contact Us</a>
+
+        <nav id="primary-navigation" className={`main-nav${menuOpen ? ' is-open' : ''}`}>
+          <div className="nav-inner page-width">
+            {navLinks.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                className={l.active ? 'active' : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                {l.label}
+              </a>
+            ))}
           </div>
         </nav>
+        {menuOpen && (
+          <button
+            type="button"
+            className="nav-backdrop"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
       </header>
 
       <main>
@@ -279,35 +345,6 @@ function App() {
             </div>
           </div>
         </div>
-
-        {/* Standard / Armor X */}
-        <section className="section">
-          <div className="page-width armor-layout">
-            <div className="armor-image">
-              <img src={HARDWARE} alt="Standard and Armor X" />
-            </div>
-            <div className="armor-columns">
-              <div>
-                <h2>Standard</h2>
-                <ul>
-                  <li>Lower cost</li>
-                  <li>Proven reliability</li>
-                  <li>Chromoly material</li>
-                  <li>Premium upgrade to OEM</li>
-                </ul>
-              </div>
-              <div className="armor-x">
-                <h2>Armor X</h2>
-                <ul>
-                  <li>Premium materials</li>
-                  <li>Reduced maintenance</li>
-                  <li>Longer service life</li>
-                  <li>Premium upgrade to OEM</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Shop by Machine */}
         <section className="section section-soft">
@@ -541,40 +578,58 @@ function App() {
         </section>
       </main>
 
-      {/* Preferred footer */}
-      <footer className="footer">
-        <div className="page-width footer-grid">
-          <div className="footer-brand">
-            <img src={LOGO} alt="Flex Rock" />
-            <p>
-              FLEX ROCK manufactures high performance aftermarket UTV products. Developing since 2018.
-            </p>
-          </div>
-          <div className="footer-col">
-            <h4>Shop</h4>
+      <footer className="footer" style={{ backgroundImage: `linear-gradient(rgba(8,10,12,0.82), rgba(8,10,12,0.88)), url(${FOOTER_BG})` }}>
+        <div className="page-width footer-main">
+          <div className="footer-col footer-about">
+            <h4>About Us</h4>
             <ul>
-              <li><a href={`${BASE}/parts-search/`}>Parts Search</a></li>
-              <li><a href={`${BASE}/shop/`}>Shop</a></li>
-              <li><a href={`${BASE}/parts-search/?pref_make=Polaris`}>Polaris</a></li>
-              <li><a href={`${BASE}/parts-search/?pref_make=Can-Am`}>Can-Am</a></li>
+              <li>
+                <a href="tel:317-427-0010">
+                  <span className="footer-ico" aria-hidden="true">📞</span>
+                  317-427-0010
+                </a>
+              </li>
+              <li>
+                <a href="mailto:orders@flexrockperformance.com">
+                  <span className="footer-ico" aria-hidden="true">✉</span>
+                  orders@flexrockperformance.com
+                </a>
+              </li>
+              <li className="footer-address">
+                <span className="footer-ico" aria-hidden="true">📍</span>
+                <span>
+                  Flex Rock UTV Performance<br />
+                  6224 W. 800 N. Suite B<br />
+                  Fountaintown, IN 46130
+                </span>
+              </li>
             </ul>
+            <div className="footer-social">
+              <a href="https://www.tiktok.com/@flexrockperformance" target="_blank" rel="noreferrer" aria-label="TikTok">♪</a>
+              <a href="https://www.facebook.com/flexrockperformance" target="_blank" rel="noreferrer" aria-label="Facebook">f</a>
+              <a href="https://www.instagram.com/flexrockperformance" target="_blank" rel="noreferrer" aria-label="Instagram">◎</a>
+              <a href="https://www.youtube.com/@flexrockperformance" target="_blank" rel="noreferrer" aria-label="YouTube">▶</a>
+            </div>
           </div>
-          <div className="footer-col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href={`${BASE}/why-choose-us/`}>Why Us</a></li>
-              <li><a href={`${BASE}/blogs/`}>Blogs</a></li>
-              <li><a href={`${BASE}/utv-gallery/`}>Search Gallery</a></li>
-              <li><a href={`${BASE}/contact-us/`}>Contact Us</a></li>
-            </ul>
+
+          <div className="footer-col footer-hours">
+            <h4>Hours</h4>
+            <p>Monday – Thursday, 7:00 AM – 4:30 PM (EST)</p>
           </div>
-          <div className="footer-col">
-            <h4>Contact</h4>
-            <ul>
-              <li><a href="tel:317-427-0010">317-427-0010</a></li>
-              <li><a href="mailto:orders@flexrockperformance.com">orders@flexrockperformance.com</a></li>
-              <li>Monday – Thursday<br />7:00 AM – 4:30 PM EST</li>
-            </ul>
+
+          <div className="footer-col footer-subscribe">
+            <h4>Subscribe</h4>
+            <form
+              className="subscribe-form"
+              onSubmit={(e) => {
+                e.preventDefault()
+                window.location.href = `${BASE}/contact-us/`
+              }}
+            >
+              <input type="email" name="email" placeholder="Email" required aria-label="Email" />
+              <button type="submit">Send</button>
+            </form>
+            <img className="footer-warranty" src={WARRANTY} alt="Flex Rock UTV Performance Lifetime Warranty" />
           </div>
         </div>
         <div className="page-width footer-bottom">
