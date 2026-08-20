@@ -221,7 +221,6 @@ function App() {
     { href: `${BASE}/blogs/`, label: 'Blogs' },
     { href: `${BASE}/utv-gallery/`, label: 'Search Gallery' },
     { href: `${BASE}/reviews/`, label: 'Reviews' },
-    { href: `${BASE}/my-account/`, label: 'My Account' },
     { href: `${BASE}/contact-us/`, label: 'Contact Us' },
   ]
 
